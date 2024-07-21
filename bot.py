@@ -16,6 +16,8 @@ bot.
 """
 
 import logging
+from openai import OpenAI
+
 import os 
 
 from telegram import ForceReply, Update
@@ -53,6 +55,28 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(update.message.text)
 
 
+async def get_event_json(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    client = OpenAI()
+    completion = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+                {
+                    "role": "system",
+                    "content": "You are a helpful google calendar events API assistant, when the user describes an event or series of events, you should respond with valid json that can be submitted to the google calendar events API to insert the event into a calendar. The events will take place in the 'America/Los_Angeles' time zone unless instructed otherwise. Assume the year is 2024 unless instructed otherwise"
+                },
+                {
+                    "role": "user",
+                    "content": update.message.text #"a two hour event starting on the 21st of july at 3pm"
+                }
+        ],
+        temperature=1,
+        max_tokens=512,
+        top_p=1,
+        frequency_penalty=0,
+    )
+
+    await update.message.reply_text(completion.choices[0].message.content or "No response")
+
 def main() -> None:
     """Start the bot."""
 
@@ -61,10 +85,10 @@ def main() -> None:
 
     # on different commands - answer in Telegram
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("help", help_command))
+    # application.add_handler(CommandHandler("help", help_command))
 
     # on non command i.e message - echo the message on Telegram
-    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, get_event_json))
 
     # Run the bot until the user presses Ctrl-C
     application.run_polling(allowed_updates=Update.ALL_TYPES)
