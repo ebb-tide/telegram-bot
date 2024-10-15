@@ -1,0 +1,56 @@
+import json
+import os
+import requests
+from openai import OpenAI
+# import google.oauth2.credentials
+# import google_auth_oauthlib.flow
+
+GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID')
+GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET')
+TELEGRAM_TOKEN = os.environ.get('TELEGRAM_TOKEN')
+TELEGRAM_CHAT_ID = os.environ.get('TELEGRAM_CHAT_ID')
+
+# def refresh_tokens(refresh_token):
+#     token_url = 'https://oauth2.googleapis.com/token'
+#     data = {
+#         'client_id': GOOGLE_CLIENT_ID,
+#         'client_secret': GOOGLE_CLIENT_SECRET,
+#         'refresh_token': refresh_token,
+#         'grant_type': 'refresh_token'
+#     }
+#     response = requests.post(token_url, data=data)
+#     return response.json()
+
+def lambda_handler(event, context):
+    request_body = json.loads(event['body'])
+    request_msg = json.dumps(request_body['message'])
+    chat_id = json.dumps(request_body['message']['chat']['id'])
+    command = json.dumps(request_body['message']['text']).strip('"')
+
+    # # BOT_CHAT_ID = chat_id # Updating the Bot Chat Id to be dynamic instead of static one earlier
+    openai = OpenAI(api_key=os.environ['OPENAI_API_KEY']);
+    
+    response = openai.chat.completions.create(
+      model= "gpt-3.5-turbo-1106",
+      messages= [{ "role": "system", "content": "You are a very helpful google calendar events API assistant, when the user describes an event or series of events, you should respond with valid json that can be submitted to the google calendar events API to insert the event in to a calendar. The events will take place in the 'America/Los_Angeles' time zone unless instructed otherwise. Assume the year is 2024 unless instructed otherwise" }, 
+      {"role":"user", "content":command}],
+      temperature=1,
+      max_tokens=500,
+      top_p=1,
+      frequency_penalty=0.0,
+      presence_penalty=0.0
+    )
+
+    text_response = response.choices[0].message.content
+
+    send_text = 'https://api.telegram.org/bot' + TELEGRAM_TOKEN + '/sendMessage?chat_id=' + TELEGRAM_CHAT_ID + '&parse_mode=HTML&text=' +  text_response
+
+    # https://developers.google.com/identity/protocols/oauth2/web-server#python
+
+    response = requests.get(send_text)
+
+    return {
+        'statusCode': 200,
+        'body': json.dumps('Hello from Lambda!')
+    }
+
