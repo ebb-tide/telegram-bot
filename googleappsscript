@@ -1,0 +1,212 @@
+// the telegram bot API: https://core.telegram.org/bots/api
+// calendar app API referencehttps://developers.google.com/apps-script/reference/calendar/calendar-app
+
+// images !
+// how to handle multiple events?
+// is it possible to check if there are any reactions on a message to ensure once only delivery?
+// todo: report errors on calendar event creation 
+// validate type of openAI response and raise if not what we expect.
+// should openAI request be structured response instead of asking for json ? 
+// find a way to insert events in to other calendars. 
+
+function getScriptProperty(propertyName) {
+  var scriptProperties = PropertiesService.getScriptProperties();
+  return scriptProperties.getProperty(propertyName);
+}
+
+var OPENAI_API_KEY = getScriptProperty('OPENAI_API_KEY')
+var TELEGRAM_BOT_TOKEN = getScriptProperty('TELEGRAM_BOT_TOKEN')
+
+function saveToMessageCache(messageId) {
+  const cache = CacheService.getScriptCache();
+  cache.put(messageId, 'received', 21600); // Expires in 6 hours
+}
+
+function isInMessageCache(messageId) {
+  const cache = CacheService.getScriptCache();
+  return cache.get(messageId) !== null;
+}
+
+function callOpenAIChatCompletion(content) {
+  var apiUrl = 'https://api.openai.com/v1/chat/completions';
+  const now = new Date();
+
+  var instructions= `
+  You are a helpful calendar assistant. 
+  The user will send you text describing an event, you should respond with a json object with properties: start_time, end_time, title, and allDay,   
+  where start_time and end_time should be ISO 8601 formatted strings, title is a short description of the event.
+  Today's date is ${now.toISOString()}, so you can interpret inputs like "this tuesday" or "next month" based on this date. 
+  If the no time is provided you can assume the event is an all day event, and you can return set the allDay property to true.
+  The events take place in the 'America/Los_Angeles' time zone unless instructed otherwise. 
+  Assume the year is 2025 unless instructed otherwise.
+  If no end time is provded assume the even lasts for one hour.
+  `
+
+  var payload = {
+    model: "gpt-4o-2024-11-20",
+    messages: [
+      {
+        "role": "system",
+        "content": instructions },
+      {
+        "role": "user",
+        "content": content
+      }
+    ],
+    // response_format: {
+    //   "type": "json_schema",
+    //   "json_schema": {
+    //     "name": "calendar_event",
+    //     "schema": {
+    //       "type": "object",
+    //       "properties": {
+    //         "start_time": {
+    //           "type": "string",
+    //           "description": "The start time of the range."
+    //         },
+    //         "end_time": {
+    //           "type": "string",
+    //           "description": "The end time of the range."
+    //         },
+    //         "title": {
+    //           "type": "string",
+    //           "description": "Concise name for event"
+    //         },
+    //         "description": {
+    //           "type": "string",
+    //           "description": "Longer description of the event"
+    //         }
+    //       },
+    //     },
+    //     "strict": true
+    //   }
+    // }
+    response_format: {"type": "json_object"}
+  };
+
+  var options = {
+    method: 'post',
+    contentType: 'application/json',
+    headers: {
+      'Authorization': 'Bearer ' + OPENAI_API_KEY
+    },
+    payload: JSON.stringify(payload)
+  };
+
+  try {
+    var response = UrlFetchApp.fetch(apiUrl, options);
+    var json = response.getContentText();
+    var completion = JSON.parse(json);
+    var result = JSON.parse(completion.choices[0].message.content);
+    return result
+  } catch (e) {
+    Logger.log('Error: ' + e.toString());
+  }
+}
+
+// function sendMessage(chatId, message) {
+//   var telegramToken = TELEGRAM_BOT_TOKEN;
+//   var apiUrl = 'https://api.telegram.org/bot' + telegramToken + '/sendMessage';
+
+//   var payload = {
+//     'chat_id': chatId,
+//     'text': message
+//   };
+
+//   var options = {
+//     'method': 'post',
+//     'payload': payload
+//   };
+
+//   UrlFetchApp.fetch(apiUrl, options);
+// }
+
+function sendMessageReaction(chatId, messageId) {
+  var telegramToken = TELEGRAM_BOT_TOKEN;
+  var apiUrl = 'https://api.telegram.org/bot' + telegramToken + '/setMessageReaction';
+
+  var payload = {
+    'chat_id': chatId,
+    'message_id': messageId,
+    'reaction': JSON.stringify([{
+      'type': 'emoji',
+      'emoji': "👍",
+    }])
+  };
+
+  var options = {
+    'method': 'post',
+    'payload': payload
+  };
+
+  UrlFetchApp.fetch(apiUrl, options);
+}
+
+function createEvent(event_json) {
+  var calendar = CalendarApp.getCalendarById('primary')
+
+  var startTime = new Date(event_json.start_time)
+  var endTime = new Date(event_json.end_time)
+  if (event_json.allDay){
+    calendar.createAllDayEvent(event_json.title, startTime, endTime) 
+  }
+  //todo error handling here? 
+  calendar.createEvent(event_json.title, startTime, endTime, {
+    location: "San Francisco, CA"
+  })
+}
+
+function getUpdates() {
+
+  var telegramToken = TELEGRAM_BOT_TOKEN;
+  var apiUrl = 'https://api.telegram.org/bot' + telegramToken + '/getUpdates';
+
+
+  const options = {
+    method: 'post',
+    contentType: 'application/json',
+    payload: JSON.stringify({ allowed_updates: ['message']}),
+  };
+
+  var response = UrlFetchApp.fetch(apiUrl, options);
+  var updates = JSON.parse(response.getContentText());
+
+  if (updates.ok) {
+    var messages = updates.result;
+    for (var i = 0; i < messages.length; i++) {
+      Logger.log(i.toString())
+
+      if (isInMessageCache(messages[i].update_id.toString())) {
+        Logger.log('in cache')
+        continue;
+      }
+      if (messages[i].message == null) {
+        saveToMessageCache(messages[i].update_id.toString());
+        Logger.log('message is null')
+        continue;
+      }
+      now= new Date().getTime()
+      Logger.log(now)
+      Logger.log((now- messages[i].message.date))
+      if((now- messages[i].message.date) > 300000) {
+        Logger.log('time')
+        saveToMessageCache(messages[i].update_id.toString());
+        continue;
+      }
+      Logger.log(messages[i].message.text)
+      var chatId = messages[i].message.chat.id;
+      var text = messages[i].message.text;
+
+      var event_json = callOpenAIChatCompletion(text) 
+      createEvent(event_json)
+      
+      // sendMessage(chatId.toString(), 'i think it worked!');
+      sendMessageReaction(chatId.toString(), messages[i].message.message_id.toString());
+      saveToCache(messages[i].update_id.toString());
+
+    }
+  }
+}
+
+getUpdates()
+// callOpenAIChatCompletion("A birthday party on the 6th of January at 7pm lasting for two hours with my friends at my house")
