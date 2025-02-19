@@ -1,0 +1,38 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Parameters:
+  GoogleClientSecret:
+    Type: String
+    NoEcho: true
+  DynamoDBTable:
+    Type: String
+  TelegramBotToken:
+    Type: String
+    NoEcho: true
+  GoogleClientId:
+    Type: String
+  OpenAIApiKey:
+    Type: String
+    NoEcho: true
+  GoogleRedirectUri:
+    Type: String
+
+Resources:
+  webhook:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs20.x
+      CodeUri: ./webhook
+      Timeout: 900
+      MemorySize: 128
+      Role: arn:aws:iam::670138744360:role/service-role/webhook-function-role-j98dymo4
+      Environment:
+        Variables:
+          GOOGLE_CLIENT_SECRET: !Ref GoogleClientSecret
+          DYNAMODB_TABLE: !Ref DynamoDBTable
+          TELEGRAM_BOT_TOKEN: !Ref TelegramBotToken
+          GOOGLE_CLIENT_ID: !Ref GoogleClientId
+          OPENAI_API_KEY: !Ref OpenAIApiKey
+          GOOGLE_REDIRECT_URI: !Ref GoogleRedirectUri

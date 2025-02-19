@@ -1,0 +1,11 @@
+version = 0.1
+[default.local_invoke.parameters]
+env_vars = ".env"
+[default.deploy.parameters]
+stack_name = "webhook"
+resolve_s3 = true
+s3_prefix = "webhook"
+region = "us-east-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+image_repositories = []

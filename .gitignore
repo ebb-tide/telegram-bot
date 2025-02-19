@@ -1,2 +1,5 @@
 venv
 .env
+webhook/node_modules
+oauth/node_modules
+oldstuff/*
