@@ -7,7 +7,7 @@ const { openAIProcessImage } = require('./openai-image');
 module.exports.handler = async (event) => {
   try {
 
-    const body = event.test? event.body : JSON.parse(event.body);
+    const body = JSON.parse(event.body);
 
     const message = body.message? body.message: null
 
@@ -18,25 +18,23 @@ module.exports.handler = async (event) => {
     const chatId = message.chat.id;
 
     let user = await getUserByTelegramId(chatId);
-    
-    if (!event.test){
-      if (!user) {
-        const authUrl = generateAuthUrl(chatId);
 
-        await sendTelegramMessage(
-          chatId,
-          `Hello! To use me, please connect your Google account: ${authUrl}`
-        );
+    if (!user) {
+      const authUrl = generateAuthUrl(chatId);
 
-        return { statusCode: 200, body: "Auth link sent" };
-      }
+      await sendTelegramMessage(
+        chatId,
+        `Hello! To use me, please connect your Google account: ${authUrl}`
+      );
 
-      const oAuth2Client = getOAuthClient();
-      oAuth2Client.setCredentials({
-        access_token: user.access_token,
-        refresh_token: user.refresh_token
-      });
+      return { statusCode: 200, body: "Auth link sent" };
     }
+
+    const oAuth2Client = getOAuthClient();
+    oAuth2Client.setCredentials({
+      access_token: user.access_token,
+      refresh_token: user.refresh_token
+    });
 
     var eventJSON = {
       parsed: false
