@@ -7,8 +7,6 @@ source .env
 sam deploy \
   --template-file template.yaml \
   --stack-name telegram-calendar-bot \
-  --no-confirm-changeset \
-  --no-fail-on-empty-changeset \
   --parameter-overrides \
     GoogleClientSecret="$GOOGLE_CLIENT_SECRET" \
     DynamoDBTable="$DYNAMODB_TABLE" \
