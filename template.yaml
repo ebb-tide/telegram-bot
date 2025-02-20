@@ -53,3 +53,12 @@ Resources:
             RestApiId: !Ref ApiGatewayApi
             Path: /webhook
             Method: POST
+  WebhookLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${webhook}'
+      RetentionInDays: 14
+Outputs:
+  WebhookApi:
+    Description: "API Gateway endpoint URL"
+    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/webhook"
