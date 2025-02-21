@@ -37,7 +37,10 @@ Resources:
       CodeUri: ./webhook
       Timeout: 900
       MemorySize: 128
-      Role: arn:aws:iam::670138744360:role/service-role/webhook-function-role-j98dymo4
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DynamoDBTable
+      # Role: arn:aws:iam::670138744360:role/service-role/webhook-function-role-j98dymo4
       Environment:
         Variables:
           GOOGLE_CLIENT_SECRET: !Ref GoogleClientSecret
@@ -57,6 +60,37 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub '/aws/lambda/${webhook}'
+      RetentionInDays: 14
+  oauth:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs20.x
+      CodeUri: ./oauth
+      Timeout: 3
+      MemorySize: 128
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DynamoDBTable
+      # Role: arn:aws:iam::670138744360:role/service-role/callback-function-role-6yyjvonb
+      Environment:
+        Variables:
+          GOOGLE_CLIENT_SECRET: !Ref GoogleClientSecret
+          DYNAMODB_TABLE: !Ref DynamoDBTable
+          TELEGRAM_BOT_TOKEN: !Ref TelegramBotToken
+          GOOGLE_CLIENT_ID: !Ref GoogleClientId
+          GOOGLE_REDIRECT_URI: !Ref GoogleRedirectUri
+      Events:
+        OauthEvent:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGatewayApi
+            Path: /oauth
+            Method: GET
+  OauthLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${oauth}'
       RetentionInDays: 14
 Outputs:
   WebhookApi:
