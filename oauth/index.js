@@ -4,7 +4,7 @@ const { google } = require('googleapis');
 const dynamoDB = new AWS.DynamoDB.DocumentClient();
 const TABLE_NAME = process.env.DYNAMODB_TABLE;
 
-module.exports.oauthCallback = async (event) => {
+module.exports.handler = async (event) => {
   try {
     // For API Gateway HTTP API, query params are in event.queryStringParameters
     const code = event.queryStringParameters?.code;
@@ -38,7 +38,7 @@ module.exports.oauthCallback = async (event) => {
     await dynamoDB.put({
       TableName: TABLE_NAME,
       Item: {
-        telegram_user_id: telegramId,
+        id: telegramId,
         access_token: tokens.access_token,
         refresh_token: tokens.refresh_token,
         expiry_date: tokens.expiry_date,
