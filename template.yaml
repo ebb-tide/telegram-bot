@@ -17,6 +17,10 @@ Parameters:
     NoEcho: true
   GoogleRedirectUri:
     Type: String
+  DenizBotToken:
+    Type: String
+  DenizBotChatId:
+    Type: String
 
 Resources:
   ApiGatewayApi:
@@ -49,6 +53,8 @@ Resources:
           GOOGLE_CLIENT_ID: !Ref GoogleClientId
           OPENAI_API_KEY: !Ref OpenAIApiKey
           GOOGLE_REDIRECT_URI: !Ref GoogleRedirectUri
+          DENIZ_BOT_TOKEN: !Ref DenizBotToken
+          DENIZ_BOT_CHATID: !Ref DenizBotChatId
       Events:
         WebhookEvent:
           Type: Api

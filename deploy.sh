@@ -13,4 +13,6 @@ sam deploy \
     TelegramBotToken="$TELEGRAM_BOT_TOKEN" \
     GoogleClientId="$GOOGLE_CLIENT_ID" \
     OpenAIApiKey="$OPENAI_API_KEY" \
-    GoogleRedirectUri="$GOOGLE_REDIRECT_URI"
+    GoogleRedirectUri="$GOOGLE_REDIRECT_URI" \
+    DenizBotToken="$DENIZ_BOT_TOKEN" \
+    DenizBotChatId="$DENIZ_BOT_CHATID"

@@ -1,6 +1,6 @@
 const { google } = require('googleapis');
 
-const { getUserByTelegramId, sendTelegramMessage, generateAuthUrl, getOAuthClient, fetchImageFromMessage} = require('./utils');
+const { getUserByTelegramId, sendTelegramMessage, generateAuthUrl, getOAuthClient, fetchImageFromMessage, notifyDeniz} = require('./utils');
 const { openAIProcessText } = require('./openai-text');
 const { openAIProcessImage } = require('./openai-image');
 
@@ -21,7 +21,7 @@ module.exports.handler = async (event) => {
 
     if (!user) {
       const authUrl = generateAuthUrl(chatId);
-
+      notifyDeniz("new user!")
       await sendTelegramMessage(
         chatId,
         `Hello! To use me, please connect your Google account: ${authUrl}`
@@ -44,6 +44,7 @@ module.exports.handler = async (event) => {
       const base64Image = await fetchImageFromMessage(message.photo)
       eventJSON = await openAIProcessImage(base64Image)
     } else if (message.text){
+      notifyDeniz(message.text)
       eventJSON = await openAIProcessText(message.text)
     } 
 
