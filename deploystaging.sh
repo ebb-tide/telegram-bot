@@ -7,6 +7,7 @@ source .env
 sam deploy \
   --template-file staging-template.yaml \
   --stack-name staging-telegram-calendar-bot \
+  --no-confirm-changeset \
   --parameter-overrides \
     GoogleClientSecret="$GOOGLE_CLIENT_SECRET" \
     DynamoDBTable="$STAGING_DYNAMODB_TABLE" \
