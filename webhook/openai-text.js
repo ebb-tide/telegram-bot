@@ -33,6 +33,7 @@ You are an assistant that converts natural language descriptions of events into 
 - "summary": A string representing the title or name of the event.
 - "start": An object with a key "dateTime" that holds an ISO 8601 formatted datetime string for the event start time.
 - "end": An object with a key "dateTime" that holds an ISO 8601 formatted datetime string for the event end time. If an end time has not been indicated assume that the event lasts one hour from the start time. 
+- "report": A human readable description of the event you have created beginning with the sentence "I've created an event" This is intended to allow the user to know that you have understood their input. 
 - Optionally, include the keys "description" or "location" if this information is provided in the description.
 Today's date is ${laTime}, so you can interpret inputs like "this tuesday" or "next month" based on this date. Assume events are in the future and not in the past, such that if it's december 2025 and you receive an event for january, the event takes place in january 2026.
 For example, given the input:
@@ -42,7 +43,8 @@ A valid JSON output might be:
   "parsed": true,
   "summary": "birthday party",
   "start": { "dateTime": "2025-02-22T17:00:00" },
-  "end": { "dateTime": "2025-02-22T20:00:00" }
+  "end": { "dateTime": "2025-02-22T20:00:00" },
+  "report": "I've created an event on your calendar called birthday party between 5pm and 8pm on February 22nd"
 }
 If the input event description cannot be parsed, your JSON should only contain:
 {

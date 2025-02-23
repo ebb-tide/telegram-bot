@@ -59,13 +59,25 @@ module.exports.handler = async (event) => {
     
       await calendar.events.insert({
         calendarId: 'primary',
-        resource: eventJSON,
+        resource: {
+          start: {dateTime: eventJSON.start.dateTime, timeZone: 'America/Los_Angeles'},
+          end: {dateTime: eventJSON.end.dateTime, timeZone: 'America/Los_Angeles'},
+          summary: eventJSON.summary
+        },
       });
-    
-      await sendTelegramMessage(
-        chatId,
-        "Event created on your Google Calendar!"
-      );
+      
+      if (eventJSON.report){
+        await sendTelegramMessage(
+          chatId,
+          eventJSON.report
+        );
+      }else{
+        await sendTelegramMessage(
+          chatId,
+          "Event created on your Google Calendar!"
+        );
+      }
+
     }else{
       await sendTelegramMessage(
         chatId,
