@@ -3,6 +3,7 @@ const { google } = require('googleapis');
 const { getUserByTelegramId, sendTelegramMessage, generateAuthUrl, getOAuthClient, fetchImageFromMessage, notifyDeniz} = require('./utils');
 const { openAIProcessText } = require('./openai-text');
 const { openAIProcessImage } = require('./openai-image');
+const env = process.env.ENVIRONMENT;
 
 module.exports.handler = async (event) => {
   try {
@@ -19,7 +20,7 @@ module.exports.handler = async (event) => {
 
     let user = await getUserByTelegramId(chatId);
 
-    if (!user) {
+    if (env === 'prod' && !user) {
       const authUrl = generateAuthUrl(chatId);
 
       notifyDeniz("new user!")

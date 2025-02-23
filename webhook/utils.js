@@ -1,12 +1,13 @@
 const AWS = require('aws-sdk');
 const { google } = require('googleapis');
 const axios = require('axios');
+
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const DENIZ_BOT_TOKEN = process.env.DENIZ_BOT_TOKEN;
 const DENIZ_BOT_CHATID = process.env.DENIZ_BOT_CHATID;
+const TABLE_NAME = process.env.DYNAMODB_TABLE;
 
 const dynamoDB = new AWS.DynamoDB.DocumentClient();
-const TABLE_NAME = process.env.DYNAMODB_TABLE;
 
 const sendTelegramMessage = async (chatId, text) => {
   const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;

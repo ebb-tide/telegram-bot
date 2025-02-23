@@ -5,8 +5,6 @@ Parameters:
   GoogleClientSecret:
     Type: String
     NoEcho: true
-  DynamoDBTable:
-    Type: String
   TelegramBotToken:
     Type: String
     NoEcho: true
@@ -23,6 +21,17 @@ Parameters:
     Type: String
 
 Resources:
+  UsersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: staging-users
+      BillingMode: PAY_PER_REQUEST  # Or use PROVISIONED if you want to set capacity units
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
   ApiGatewayApi:
     Type: AWS::Serverless::Api
     Properties:
@@ -33,7 +42,7 @@ Resources:
         AllowMethods: "'POST, GET, OPTIONS'"
         AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
         AllowOrigin: "'*'"
-  webhook:
+  stagingwebhook:
     Type: AWS::Serverless::Function
     Properties:
       Handler: index.handler
@@ -43,63 +52,32 @@ Resources:
       MemorySize: 128
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: !Ref DynamoDBTable
+            TableName: !Ref UsersTable
       # Role: arn:aws:iam::670138744360:role/service-role/webhook-function-role-j98dymo4
       Environment:
         Variables:
           GOOGLE_CLIENT_SECRET: !Ref GoogleClientSecret
-          DYNAMODB_TABLE: !Ref DynamoDBTable
+          DYNAMODB_TABLE: !Ref UsersTable
           TELEGRAM_BOT_TOKEN: !Ref TelegramBotToken
           GOOGLE_CLIENT_ID: !Ref GoogleClientId
           OPENAI_API_KEY: !Ref OpenAIApiKey
           GOOGLE_REDIRECT_URI: !Ref GoogleRedirectUri
           DENIZ_BOT_TOKEN: !Ref DenizBotToken
           DENIZ_BOT_CHATID: !Ref DenizBotChatId
-          ENVIRONMENT: prod
+          ENVIRONMENT: staging
       Events:
         WebhookEvent:
           Type: Api
           Properties:
             RestApiId: !Ref ApiGatewayApi
-            Path: /webhook
+            Path: /staging-webhook
             Method: POST
   WebhookLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub '/aws/lambda/${webhook}'
-      RetentionInDays: 14
-  oauth:
-    Type: AWS::Serverless::Function
-    Properties:
-      Handler: index.handler
-      Runtime: nodejs20.x
-      CodeUri: ./oauth
-      Timeout: 3
-      MemorySize: 128
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref DynamoDBTable
-      # Role: arn:aws:iam::670138744360:role/service-role/callback-function-role-6yyjvonb
-      Environment:
-        Variables:
-          GOOGLE_CLIENT_SECRET: !Ref GoogleClientSecret
-          DYNAMODB_TABLE: !Ref DynamoDBTable
-          TELEGRAM_BOT_TOKEN: !Ref TelegramBotToken
-          GOOGLE_CLIENT_ID: !Ref GoogleClientId
-          GOOGLE_REDIRECT_URI: !Ref GoogleRedirectUri
-      Events:
-        OauthEvent:
-          Type: Api
-          Properties:
-            RestApiId: !Ref ApiGatewayApi
-            Path: /oauth
-            Method: GET
-  OauthLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub '/aws/lambda/${oauth}'
+      LogGroupName: !Sub '/aws/lambda/${stagingwebhook}'
       RetentionInDays: 14
 Outputs:
   WebhookApi:
     Description: "API Gateway endpoint URL"
-    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/webhook"
+    Value: !Sub "https://${ApiGatewayApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/staging-webhook"
