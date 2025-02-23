@@ -1,6 +1,14 @@
 const { google } = require('googleapis');
 
-const { getUserByTelegramId, sendTelegramMessage, generateAuthUrl, getOAuthClient, fetchImageFromMessage, notifyDeniz} = require('./utils');
+const { 
+  getUserByTelegramId, 
+  sendTelegramMessage, 
+  generateAuthUrl, 
+  getOAuthClient, 
+  fetchImageFromMessage, 
+  notifyDeniz, 
+  selectCalendar
+} = require('./utils');
 const { openAIProcessText } = require('./openai-text');
 const { openAIProcessImage } = require('./openai-image');
 const env = process.env.ENVIRONMENT;
@@ -38,6 +46,8 @@ module.exports.handler = async (event) => {
       access_token: user.access_token,
       refresh_token: user.refresh_token
     });
+
+    // await selectCalendar(oAuth2Client, chatId); 
 
     var eventJSON = {
       parsed: false

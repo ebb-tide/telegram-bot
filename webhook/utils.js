@@ -77,11 +77,44 @@ const getOAuthClient = () => {
   );
 }
 
+const selectCalendar = async (oAuth2Client, chatId) => {
+  const calendar = google.calendar({ version: 'v3', auth: oAuth2Client });
+  const cals=[]
+  try {
+    
+    const response = await calendar.calendarList.list();
+    response.data.items.forEach(cal => {
+      cals.push(cal.summary)
+    });
+    
+    const keyboards = [];
+    for (let i = 0; i < cals.length; i += 2) {
+      const row = cals[i + 1] ? [{text:cals[i]}, {text:cals[i+1]}] : [{text:cals[i]}]
+      keyboards.push(row);
+    }
+
+    const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+    await axios.post(url, {
+        chat_id: chatId,
+        text: "please select a calendar",
+        parse_mode: 'HTML',
+        reply_markup:{
+          one_time_keyboard: true,
+          keyboard:keyboards
+        }
+    });
+  } catch (error) {
+    console.error('Error fetching calendars:', error);
+    throw error;
+  }
+}
+
 module.exports = {
   fetchImageFromMessage,
   getUserByTelegramId,
   sendTelegramMessage,
   generateAuthUrl,
   getOAuthClient,
-  notifyDeniz
+  notifyDeniz,
+  selectCalendar
 };
