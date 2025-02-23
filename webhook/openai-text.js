@@ -15,17 +15,6 @@ const openAIProcessText = async (content) => {
     hour12: false
   }).format(now);
 
-  // const instructions = `
-  // You are a helpful calendar assistant. 
-  // The user will send you text describing an event, you should respond with a json object with properties: start_time, end_time, title, and allDay,   
-  // where start_time and end_time should be ISO 8601 formatted strings, title is a short description of the event.
-  // Today's date is ${laTime}, so you can interpret inputs like "this tuesday" or "next month" based on this date. 
-  // If the no time is provided you can assume the event is an all day event, and you can return set the allDay property to true.
-  // The events take place in the 'America/Los_Angeles' time zone unless instructed otherwise. 
-  // Assume the year is 2025 unless instructed otherwise.
-  // If no end time is provided assume the event lasts for one hour.
-  // `;
-
 
 const instructions= `
 You are an assistant that converts natural language descriptions of events into a JSON format suitable for the Google Calendar API. Your response must be valid JSON with no additional text, markdown formatting, or explanations. The JSON object should have the following keys:
