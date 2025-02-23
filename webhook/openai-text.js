@@ -74,7 +74,6 @@ If the input event description cannot be parsed, your JSON should only contain:
 
     const completion = await response.json();
     const result = JSON.parse(completion.choices[0].message.content);
-    console.dir(result)
     
     return result;
   } catch (error) {
