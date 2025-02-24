@@ -55,26 +55,26 @@ module.exports.handler = async (event) => {
 
     if (message.photo){
       const base64Image = await fetchImageFromMessage(message.photo)
+      notifyDeniz("got an image")
       eventJSON = await openAIProcessImage(base64Image)
     } else if (message.text){
       notifyDeniz(message.text)
       eventJSON = await openAIProcessText(message.text)
-    } 
+    }
 
     if (eventJSON.parsed) {
-      eventJSON.start.timeZone= 'America/Los_Angeles'
-      eventJSON.end.timeZone = 'America/Los_Angeles'
-    
       const calendar = google.calendar({ version: 'v3', auth: oAuth2Client });
     
-      await calendar.events.insert({
-        calendarId: 'primary',
-        resource: {
-          start: {dateTime: eventJSON.start.dateTime, timeZone: 'America/Los_Angeles'},
-          end: {dateTime: eventJSON.end.dateTime, timeZone: 'America/Los_Angeles'},
-          summary: eventJSON.summary
-        },
-      });
+      await Promise.all(eventJSON.events.map(event => {
+        return calendar.events.insert({
+          calendarId: 'primary',
+          requestBody: {
+            start: {dateTime: event.start.dateTime, timeZone: 'America/Los_Angeles'},
+            end: {dateTime: event.end.dateTime, timeZone: 'America/Los_Angeles'},
+            summary: event.summary
+          }
+        });
+      }));
       
       if (eventJSON.report){
         await sendTelegramMessage(
