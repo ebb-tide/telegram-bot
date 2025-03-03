@@ -228,7 +228,10 @@
             border-radius: 12px;
             width: fit-content;
             margin-top: 5px;
-            display: none;
+            align-self: flex-start;
+            border-top-left-radius: 3px;
+            opacity: 0;
+            animation: fadeIn 0.3s ease-out forwards;
         }
         
         .typing span {
@@ -340,13 +343,13 @@
     </style>
 </head>
 <body>
-    <!-- <header>
+    <header>
         <div class="container">
             <nav class="navbar">
                 <a href="#" class="logo">Calendar Entry Bot</a>
             </nav>
         </div>
-    </header> -->
+    </header>
 
     <main class="main">
         <div class="container">
@@ -358,34 +361,27 @@
 
             <!-- <section class="feature">
                 <h3 class="feature-title">Effortless Scheduling</h3>
-                <p>Create and manage calendar events with simple commands right from your Telegram chats.</p>
+                <p>Create and manage calendar events with simple commands right from your Telegram chats. Just type what you need, and let the bot handle the rest.</p>
             </section> -->
-        </div>
 
-
-    <section class="examples">
-        <h2 class="examples-title">See it in action</h2>
-        <div class="chat-container">
-            <div class="chat-header">
-                <div class="chat-avatar">C</div>
-                <div class="chat-name">Calendar Entry Bot</div>
-            </div>
-            <div class="chat-messages" id="chat-example">
-                <!-- <div class="message bot-message">Hi there! I'm Calendar Entry Bot. How can I help you organize your schedule today?</div> -->
-                <div class="typing" id="typing-indicator">
-                    <span></span>
-                    <span></span>
-                    <span></span>
+            <section class="examples">
+                <!-- <h2 class="examples-title">See it in action</h2> -->
+                <div class="chat-container">
+                    <div class="chat-header">
+                        <div class="chat-avatar">C</div>
+                        <div class="chat-name">Calendar Entry Bot</div>
+                    </div>
+                    <div class="chat-messages" id="chat-example">
+                        <!-- <div class="message bot-message">Hi there! I'm Calendar Entry Bot. How can I help you organize your schedule today?</div> -->
+                    </div>
                 </div>
-            </div>
+                <!-- <div class="more-examples">
+                    <button class="more-examples-btn" id="more-examples-btn">See more examples</button>
+                </div> -->
+            </section>
         </div>
-        <!-- <div class="more-examples">
-            <button class="more-examples-btn" id="more-examples-btn">See more examples</button>
-        </div> -->
-    </section>
+    </main>
 
-</main>
-    
     <footer>
         <div class="container">
             <div class="footer-content">
@@ -425,8 +421,12 @@
         let currentExample = 0;
         let isTyping = false;
         const chatElement = document.getElementById('chat-example');
-        const typingIndicator = document.getElementById('typing-indicator');
         const moreExamplesBtn = document.getElementById('more-examples-btn');
+
+        // Create typing indicator but don't add it to DOM yet
+        const typingIndicator = document.createElement('div');
+        typingIndicator.className = 'typing';
+        typingIndicator.innerHTML = '<span></span><span></span><span></span>';
 
         // Simulates typing effect for user messages
         function typeMessage(text, callback) {
@@ -452,10 +452,12 @@
 
         // Shows typing indicator and then displays bot response
         function showBotResponse(text) {
-            typingIndicator.style.display = 'flex';
+            // Add typing indicator to DOM
+            chatElement.appendChild(typingIndicator);
             
             setTimeout(() => {
-                typingIndicator.style.display = 'none';
+                // Remove typing indicator
+                chatElement.removeChild(typingIndicator);
                 
                 const responseElement = document.createElement('div');
                 responseElement.className = 'message bot-message';
