@@ -203,5 +203,132 @@
             </div>
         </div>
     </footer>
+
+    <section class="examples">
+        <h2 class="examples-title">See it in action</h2>
+        <div class="chat-container">
+            <div class="chat-header">
+                <div class="chat-avatar">C</div>
+                <div class="chat-name">Calendar Entry Bot</div>
+            </div>
+            <div class="chat-messages" id="chat-example">
+                <div class="message bot-message">Hi there! I'm Calendar Entry Bot. How can I help you organize your schedule today?</div>
+                <div class="typing" id="typing-indicator">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+        </div>
+        <!-- <div class="more-examples">
+            <button class="more-examples-btn" id="more-examples-btn">See more examples</button>
+        </div> -->
+    </section>
+
+    <script>
+        const chatExamples = [
+            {
+                user: "Add meeting with John tomorrow at 3pm",
+                bot: "📅 Added to your calendar: Meeting with John\n📆 Tomorrow at 3:00 PM\n⏱️ Duration: 1 hour\n"
+            },
+            // {
+            //     user: "Yes, remind me 30 minutes before",
+            //     bot: "✅ Reminder set for 30 minutes before the meeting with John tomorrow."
+            // },
+            {
+                user: "Schedule weekly team call every Friday at 10am",
+                bot: "📅 Added recurring event: Team call\n📆 Every Friday at 10:00 AM\n⏱️ Duration: 1 hour\n\nThis has been added as a recurring event. Would you like to invite anyone?"
+            },
+            // {
+            //     user: "What's on my calendar for next Monday?",
+            //     bot: "📆 Your schedule for next Monday, March 10:\n\n9:00 AM - Daily standup\n1:00 PM - Lunch with Sarah\n3:30 PM - Project review\n\nYou have 3 events scheduled."
+            // },
+            // {
+            //     user: "Clear my schedule on Friday afternoon",
+            //     bot: "I've removed all events from your calendar on Friday afternoon (12:00 PM - 5:00 PM). 2 events have been canceled."
+            // }
+        ];
+
+        let currentExample = 0;
+        let isTyping = false;
+        const chatElement = document.getElementById('chat-example');
+        const typingIndicator = document.getElementById('typing-indicator');
+        const moreExamplesBtn = document.getElementById('more-examples-btn');
+
+        // Simulates typing effect for user messages
+        function typeMessage(text, callback) {
+            const messageElement = document.createElement('div');
+            messageElement.className = 'message user-message';
+            chatElement.appendChild(messageElement);
+            
+            let index = 0;
+            const typingSpeed = 50; // milliseconds per character
+            
+            function type() {
+                if (index < text.length) {
+                    messageElement.textContent = text.substring(0, index + 1);
+                    index++;
+                    setTimeout(type, typingSpeed);
+                } else {
+                    if (callback) setTimeout(callback, 500);
+                }
+            }
+            
+            type();
+        }
+
+        // Shows typing indicator and then displays bot response
+        function showBotResponse(text) {
+            typingIndicator.style.display = 'flex';
+            
+            setTimeout(() => {
+                typingIndicator.style.display = 'none';
+                
+                const responseElement = document.createElement('div');
+                responseElement.className = 'message bot-message';
+                responseElement.textContent = text;
+                chatElement.appendChild(responseElement);
+                
+                // Check if we should continue the conversation
+                if (currentExample < chatExamples.length - 1) {
+                    currentExample++;
+                    setTimeout(() => {
+                        if (!isTyping) showNextExample();
+                    }, 2000);
+                }
+            }, 1500);
+        }
+
+        // Shows the next example in the sequence
+        function showNextExample() {
+            if (isTyping) return;
+            isTyping = true;
+            
+            typeMessage(chatExamples[currentExample].user, () => {
+                isTyping = false;
+                showBotResponse(chatExamples[currentExample].bot);
+            });
+        }
+
+        // Start with first example after a short delay
+        setTimeout(() => {
+            showNextExample();
+        }, 1500);
+
+        // Handle more examples button click
+        moreExamplesBtn.addEventListener('click', () => {
+            // Reset the examples if we've gone through them all
+            if (currentExample >= chatExamples.length - 1) {
+                // Clear all except the first bot message
+                while (chatElement.children.length > 1) {
+                    chatElement.removeChild(chatElement.lastChild);
+                }
+                currentExample = 0;
+                setTimeout(() => {
+                    if (!isTyping) showNextExample();
+                }, 500);
+            }
+        });
+    </script>
 </body>
 </html>
