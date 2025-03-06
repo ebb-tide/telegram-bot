@@ -21,7 +21,7 @@ module.exports.handler = async (event) => {
     const message = body.message? body.message: null
 
     if (!message) {
-      return { statusCode: 200, body: "No message" };
+      throw new Error(`[internal] No message in body`);
     }
 
     const chatId = message.chat.id;
