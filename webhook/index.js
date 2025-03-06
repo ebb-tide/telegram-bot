@@ -34,7 +34,7 @@ module.exports.handler = async (event) => {
 
     if (env === 'prod' && !user) {
       const authUrl = generateAuthUrl(chatId);
-      notifyDeniz("new user!")
+      await notifyDeniz("new user!")
       await sendTelegramMessage(
         chatId,
         `Hello! To use me, please <a href="${authUrl.replace(/&/g, '&amp;')}"> connect your Google account. </a>`
@@ -56,10 +56,10 @@ module.exports.handler = async (event) => {
 
       if (message.photo) {
         const base64Image = await fetchImageFromMessage(message.photo)
-        notifyDeniz("got an image")
+        await notifyDeniz("got an image")
         eventJSON = await openAIProcessImage(base64Image)
       } else if (message.text) {
-        notifyDeniz(message.text)
+        await notifyDeniz(message.text)
         eventJSON = await openAIProcessText(message.text)
       }
 
@@ -88,7 +88,7 @@ module.exports.handler = async (event) => {
           "Sorry, I wasn't able to create an event based on your input."
         );
         if (message.text) (
-          notifyDeniz(`parse error: ${message.text}`)
+          await notifyDeniz(`parse error: ${message.text}`)
         )
       }
 
