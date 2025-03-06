@@ -46,7 +46,7 @@ module.exports.handler = async (event) => {
     }).promise();
 
     // 3. Redirect user back to a "success" page or just show a simple message
-    return redirectWithMessage("Your bot is now connected to Google Calendar!");
+    return redirectWithMessage("Success! You can now use calendar entry bot !");
 
   } catch (err) {
     console.error("OAuth callback error:", err);
