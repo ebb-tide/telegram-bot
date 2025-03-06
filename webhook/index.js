@@ -7,7 +7,7 @@ const {
   getOAuthClient,
   fetchImageFromMessage,
   notifyDeniz,
-  selectCalendar
+  // selectCalendar
 } = require('./utils');
 const { openAIProcessText } = require('./openai-text');
 const { openAIProcessImage } = require('./openai-image');
@@ -21,7 +21,11 @@ module.exports.handler = async (event) => {
     const message = body.message ? body.message : null
 
     if (!message) {
-      throw new Error(`[internal] No message in body`);
+      throw new Error(JSON.stringify({
+        type: "VALIDATION_ERROR",
+        message: "[internal] No message in body",
+        body: body
+      }));
     }
 
     const chatId = message.chat.id;
@@ -108,8 +112,13 @@ module.exports.handler = async (event) => {
     // await selectCalendar(oAuth2Client, chatId); 
 
   } catch (error) {
-    console.error(error);
-    notifyDeniz(error)
+    const errorMessage = error.message || JSON.stringify(error);
+    console.error('Error details:', {
+      message: errorMessage,
+      stack: error.stack,
+      error: error
+    });
+    await notifyDeniz(`emitted error: ${errorMessage}`);
     return { statusCode: 200, body: "Error" };
   }
 };
