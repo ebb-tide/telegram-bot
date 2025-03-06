@@ -95,7 +95,7 @@ module.exports.handler = async (event) => {
         const authUrl = generateAuthUrl(chatId);
         await sendTelegramMessage(
           chatId,
-          `Hello! To use me, please <a href="${authUrl.replace(/&/g, '&amp;')}"> connect your Google account. </a>`
+          `Oh no- it looks like we need to <a href="${authUrl.replace(/&/g, '&amp;')}"> reconnect your Google account</a> to continue.`
         );
 
         return { statusCode: 200, body: "Auth link sent" };
