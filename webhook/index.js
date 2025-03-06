@@ -86,6 +86,9 @@ module.exports.handler = async (event) => {
         chatId,
         "Sorry, I wasn't able to create an event based on your input."
       );
+      if (message.text) (
+        notifyDeniz(`parse error: ${message.text}`)
+      )
     }
 
     return { statusCode: 200, body: "OK" };
