@@ -1,12 +1,12 @@
 const { google } = require('googleapis');
 
-const { 
-  getUserByTelegramId, 
-  sendTelegramMessage, 
-  generateAuthUrl, 
-  getOAuthClient, 
-  fetchImageFromMessage, 
-  notifyDeniz, 
+const {
+  getUserByTelegramId,
+  sendTelegramMessage,
+  generateAuthUrl,
+  getOAuthClient,
+  fetchImageFromMessage,
+  notifyDeniz,
   selectCalendar
 } = require('./utils');
 const { openAIProcessText } = require('./openai-text');
@@ -18,7 +18,7 @@ module.exports.handler = async (event) => {
 
     const body = JSON.parse(event.body);
 
-    const message = body.message? body.message: null
+    const message = body.message ? body.message : null
 
     if (!message) {
       throw new Error(`[internal] No message in body`);
@@ -30,9 +30,7 @@ module.exports.handler = async (event) => {
 
     if (env === 'prod' && !user) {
       const authUrl = generateAuthUrl(chatId);
-
       notifyDeniz("new user!")
-
       await sendTelegramMessage(
         chatId,
         `Hello! To use me, please <a href="${authUrl.replace(/&/g, '&amp;')}"> connect your Google account. </a>`
