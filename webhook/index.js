@@ -76,17 +76,10 @@ module.exports.handler = async (event) => {
         });
       }));
       
-      if (eventJSON.report){
-        await sendTelegramMessage(
-          chatId,
-          eventJSON.report
-        );
-      }else{
-        await sendTelegramMessage(
-          chatId,
-          "Event created on your Google Calendar!"
-        );
-      }
+      await sendTelegramMessage(
+        chatId,
+        eventJSON.report || "Event created on your Google Calendar!"
+      );
 
     }else{
       await sendTelegramMessage(
