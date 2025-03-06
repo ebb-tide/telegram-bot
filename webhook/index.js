@@ -94,6 +94,7 @@ module.exports.handler = async (event) => {
     return { statusCode: 200, body: "OK" };
   } catch (error) {
     console.error(error);
-    return { statusCode: 200, body: "Error" }; // Return 200 so Telegram doesn't retry infinitely
+    notifyDeniz(error)
+    return { statusCode: 200, body: "Error" };
   }
 };
